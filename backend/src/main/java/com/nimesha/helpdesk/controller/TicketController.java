@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.nimesha.helpdesk.dto.UpdateTicketStatusRequest;
 
 import java.util.List;
 
@@ -68,4 +69,41 @@ public class TicketController {
                 )
         );
     }
+    @GetMapping("/support/open")
+    public ResponseEntity<List<TicketResponse>> getOpenTickets() {
+
+        return ResponseEntity.ok(
+                ticketService.getOpenTickets()
+        );
+    }
+
+    @PutMapping("/support/{id}/assign")
+public ResponseEntity<TicketResponse> assignTicket(
+        @PathVariable Long id,
+        Authentication authentication) {
+
+    User currentUser =
+            (User) authentication.getPrincipal();
+
+    return ResponseEntity.ok(
+            ticketService.assignTicketToCurrentSupport(
+                    id,
+                    currentUser
+            )
+        );
+    }
+
+    @PutMapping("/support/{id}/status")
+public ResponseEntity<TicketResponse> updateStatus(
+        @PathVariable Long id,
+        @Valid @RequestBody UpdateTicketStatusRequest request) {
+
+    return ResponseEntity.ok(
+            ticketService.updateTicketStatus(
+                    id,
+                    request.getStatus()
+            )
+    );
 }
+
+    }

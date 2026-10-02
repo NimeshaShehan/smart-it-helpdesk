@@ -99,4 +99,51 @@ public class TicketService {
                 ticket.getResolvedAt()
         );
     }
+    public List<TicketResponse> getOpenTickets() {
+
+    return ticketRepository
+            .findByStatusOrderByCreatedAtDesc(TicketStatus.OPEN)
+            .stream()
+            .map(this::toResponse)
+            .toList();
+    }
+    public TicketResponse assignTicketToCurrentSupport(
+        Long ticketId,
+        User currentUser) {
+
+    Ticket ticket = ticketRepository.findById(ticketId)
+            .orElseThrow(() ->
+                    new RuntimeException("Ticket not found"));
+
+    ticket.setAssignedTo(currentUser);
+
+    if (ticket.getStatus() == TicketStatus.OPEN) {
+        ticket.setStatus(TicketStatus.IN_PROGRESS);
+    }
+
+    Ticket updatedTicket = ticketRepository.save(ticket);
+
+    return toResponse(updatedTicket);
+}
+
+public TicketResponse updateTicketStatus(
+        Long ticketId,
+        TicketStatus status) {
+
+    Ticket ticket = ticketRepository.findById(ticketId)
+            .orElseThrow(() ->
+                    new RuntimeException("Ticket not found"));
+
+    ticket.setStatus(status);
+
+    if (status == TicketStatus.RESOLVED) {
+        ticket.setResolvedAt(java.time.LocalDateTime.now());
+    } else {
+        ticket.setResolvedAt(null);
+    }
+
+    Ticket updatedTicket = ticketRepository.save(ticket);
+
+    return toResponse(updatedTicket);
+}
 }

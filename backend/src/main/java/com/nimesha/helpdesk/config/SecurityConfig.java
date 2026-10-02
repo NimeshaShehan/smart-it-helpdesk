@@ -43,6 +43,8 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login"
                         ).permitAll()
+                        .requestMatchers("/api/tickets/support/**")
+                        .hasAnyRole("IT_SUPPORT", "ADMIN")
 
                         .requestMatchers("/api/admin/**")
                         .hasRole("ADMIN")
@@ -67,4 +69,5 @@ public class SecurityConfig {
 
         return http.build();
     }
+    
 }
