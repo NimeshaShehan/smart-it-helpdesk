@@ -9,6 +9,8 @@ import com.nimesha.helpdesk.entity.User;
 import com.nimesha.helpdesk.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class TicketService {
 
@@ -40,6 +42,39 @@ public class TicketService {
         Ticket savedTicket = ticketRepository.save(ticket);
 
         return toResponse(savedTicket);
+    }
+
+    public List<TicketResponse> getMyTickets(User currentUser) {
+
+        return ticketRepository
+                .findByCreatedByOrderByCreatedAtDesc(currentUser)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public TicketResponse getTicketById(
+            Long id,
+            User currentUser) {
+
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Ticket not found"));
+
+        boolean isOwner =
+                ticket.getCreatedBy()
+                        .getId()
+                        .equals(currentUser.getId());
+
+        boolean isSupport =
+                currentUser.getRole().name().equals("IT_SUPPORT")
+                        || currentUser.getRole().name().equals("ADMIN");
+
+        if (!isOwner && !isSupport) {
+            throw new RuntimeException("Access denied");
+        }
+
+        return toResponse(ticket);
     }
 
     public TicketResponse toResponse(Ticket ticket) {
